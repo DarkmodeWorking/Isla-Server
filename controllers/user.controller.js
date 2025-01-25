@@ -1,6 +1,6 @@
 import { User } from '../models/user.model.js'
 import cloudinary from '../utils/cloudinary.js'
-import getDataUri from '../utils/dataUri.js'
+import getDataUri from '../utils/datauri.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
@@ -44,7 +44,7 @@ export const login = async (req, res) => {
                 success: false
             })
         }
-        const user = User.findOne({email})
+        let user = await User.findOne({email})
         if (!user) {
             return res.status(401).json({
                 message: 'Incorrect Email',
@@ -99,7 +99,7 @@ export const logout = async (_, res) => {
 export const getProfile = async (req, res) => {
     try {
         const userID = req.params.id
-        let user = await User.findById(userID)
+        let user = await User.findById(userID).select('-password')
         return res.status(200).json({
             user,
             success: true
