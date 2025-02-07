@@ -1,3 +1,4 @@
+import { Post } from '../models/post.model.js'
 import { User } from '../models/user.model.js'
 import cloudinary from '../utils/cloudinary.js'
 import getDataUri from '../utils/datauri.js'
@@ -59,6 +60,15 @@ export const login = async (req, res) => {
             })
         }
         const token = await jwt.sign({userID: user._id}, process.env.SECRET_KEY, {expiresIn: '1d'})
+        const populatedPosts = await Promise.all(
+            user.posts.map(async (postID) => {
+                const post = await Post.findById(postID)
+                if (post.author.equals(user._id)) {
+                    return post
+                }
+                return null
+            })
+        )
         user = {
             _id: user._id,
             username: user.username,
@@ -67,7 +77,7 @@ export const login = async (req, res) => {
             bio: user.bio,
             followers: user.followers,
             following: user.following,
-            posts: user.posts
+            posts: populatedPosts
         }
         return res.cookie('token', token, {
             httpOnly: true,
